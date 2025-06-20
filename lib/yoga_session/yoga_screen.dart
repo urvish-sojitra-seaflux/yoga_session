@@ -93,12 +93,6 @@ class _YogaScreenState extends State<YogaScreen> {
           (v['locale']?.toString().toLowerCase().contains('en-US') ?? false),
       orElse: () => null,
     );
-    final femaleVoices = voices
-        .where((v) =>
-            ((v['gender']?.toString().toLowerCase() == 'female')) &&
-            (v['locale']?.toString().toLowerCase().contains('en-US') ?? false))
-        .toList();
-    print(femaleVoices);
     if (femaleVoice != null) {
       final Map<String, String> stringVoice = Map.fromEntries(
         (femaleVoice as Map)
@@ -127,14 +121,16 @@ class _YogaScreenState extends State<YogaScreen> {
       appBar: AppBar(title: const Text('Yoga Session')),
       body: LayoutBuilder(
         builder: (context, constraints) {
-          return Container(
-            padding: const EdgeInsets.all(16.0),
-            alignment: Alignment.center,
-            color: Colors.grey[200],
-            constraints: BoxConstraints(
-              maxWidth: constraints.maxWidth < 600 ? 400 : 600,
+          return Center(
+            child: Container(
+              padding: const EdgeInsets.all(16.0),
+              alignment: Alignment.center,
+              color: Colors.grey[200],
+              constraints: BoxConstraints(
+                maxWidth: constraints.maxWidth < 600 ? 400 : 600,
+              ),
+              child: _sessionStarted ? _sessionWidget(context) : _getDetails(),
             ),
-            child: _sessionStarted ? _sessionWidget(context) : _getDetails(),
           );
         },
       ),

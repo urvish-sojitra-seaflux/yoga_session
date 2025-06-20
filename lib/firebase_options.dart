@@ -63,6 +63,6 @@ class DefaultFirebaseOptions {
     messagingSenderId: '912222150623',
     projectId: 'vertex-ai-bot-8579d',
     storageBucket: 'vertex-ai-bot-8579d.firebasestorage.app',
-    iosBundleId: 'com.example.practiceApp',
+    iosBundleId: 'com.yoga.app',
   );
 }
