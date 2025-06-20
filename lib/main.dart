@@ -3,10 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:practice_app/splash_screen.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  // await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  // await FirebaseAuth.instance.signInAnonymously();
-
   runApp(const MyApp());
 }
 
