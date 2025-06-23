@@ -12,10 +12,10 @@ class YogaScreen extends StatefulWidget {
 
 class _YogaScreenState extends State<YogaScreen> {
   final _formKey = GlobalKey<FormState>();
-  int _rounds = 3;
-  int _inhale = 4;
-  int _hold = 4;
-  int _exhale = 4;
+  int _rounds = 0;
+  int _inhale = 0;
+  int _hold = 0;
+  int _exhale = 0;
   int _delayToStart = 0;
   int _holdAfterExhale = 0;
   bool _sessionStarted = false;
