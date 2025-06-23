@@ -61,12 +61,9 @@ class _YogaScreenState extends State<YogaScreen> {
   void _startRound() async {
     await _speak('Round $_currentRound start');
     _startPhase('Inhale', _inhale, () async {
-      await _speak('Hold');
       _startPhase('Hold', _hold, () async {
-        await _speak('Exhale');
         _startPhase('Exhale', _exhale, () async {
           if (_holdAfterExhale > 0) {
-            await _speak('Hold After Exhale');
             _startPhase('Hold After Exhale', _holdAfterExhale, () async {
               _afterExhalePause();
             });
@@ -166,7 +163,7 @@ class _YogaScreenState extends State<YogaScreen> {
         builder: (context, constraints) {
           return Center(
             child: Container(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(20.0),
               alignment: Alignment.center,
               color: Colors.grey[200],
               constraints: BoxConstraints(
