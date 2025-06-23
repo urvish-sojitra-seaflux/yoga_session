@@ -158,7 +158,10 @@ class _YogaScreenState extends State<YogaScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Yoga Session')),
+      appBar: AppBar(
+        title: const Text('Yoga Session'),
+        leading: const SizedBox(),
+      ),
       body: LayoutBuilder(
         builder: (context, constraints) {
           return Center(
