@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
 class YogaScreen extends StatefulWidget {
@@ -60,37 +61,25 @@ class _YogaScreenState extends State<YogaScreen> {
 
   void _startRound() async {
     await _speak('Round $_currentRound start');
-    _startPhase('Inhale', _inhale, () async {
-      _startPhase('Hold', _hold, () async {
-        _startPhase('Exhale', _exhale, () async {
-          if (_holdAfterExhale > 0) {
-            _startPhase('Hold After Exhale', _holdAfterExhale, () async {
-              _afterExhalePause();
-            });
-          } else {
-            _afterExhalePause();
-          }
-        });
-      });
-    });
+    await _startPhase('Inhale', _inhale);
+    await _startPhase('Hold', _hold);
+    await _startPhase('Exhale', _exhale);
+    if (_holdAfterExhale > 0) {
+      await _startPhase('Hold After Exhale', _holdAfterExhale);
+    }
+    await _afterExhalePause();
   }
 
-  void _afterExhalePause() async {
+  Future<void> _afterExhalePause() async {
     if (_currentRound < _rounds) {
       await _speak('Round $_currentRound complete');
       if (_pauseRequired && _pauseSeconds > 0) {
-        _startPhase('Pause', _pauseSeconds, () {
-          setState(() {
-            _currentRound++;
-          });
-          _startRound();
-        });
-      } else {
-        setState(() {
-          _currentRound++;
-        });
-        _startRound();
+        await _startPhase('Pause', _pauseSeconds);
       }
+      setState(() {
+        _currentRound++;
+      });
+      _startRound();
     } else {
       await _speak('All rounds complete');
       setState(() {
@@ -99,13 +88,14 @@ class _YogaScreenState extends State<YogaScreen> {
     }
   }
 
-  void _startPhase(String phase, int seconds, VoidCallback onComplete) async {
+  Future<void> _startPhase(String phase, int seconds) async {
     setState(() {
       _phase = phase;
       _timeLeft = seconds;
     });
     _timer?.cancel();
     await _speak(phase);
+    final completer = Completer<void>();
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_timeLeft > 1) {
         setState(() {
@@ -113,9 +103,10 @@ class _YogaScreenState extends State<YogaScreen> {
         });
       } else {
         timer.cancel();
-        onComplete();
+        completer.complete();
       }
     });
+    await completer.future;
   }
 
   @override
@@ -126,7 +117,7 @@ class _YogaScreenState extends State<YogaScreen> {
 
   Future<void> _setFemaleVoice() async {
     List<dynamic> voices = await _tts.getVoices;
-    // Try to find a female English voice
+
     final femaleVoice = voices.firstWhere(
       (v) =>
           ((v['gender']?.toString().toLowerCase() == 'female')) &&
@@ -143,7 +134,6 @@ class _YogaScreenState extends State<YogaScreen> {
 
       await _tts.setVoice(stringVoice);
     } else {
-      // fallback: set language to English and hope for female default
       await _tts.setLanguage('en-US');
     }
   }
@@ -196,9 +186,9 @@ class _YogaScreenState extends State<YogaScreen> {
           decoration: BoxDecoration(
             gradient: const LinearGradient(
               colors: [
-                Color(0xFF232526), // dark grey
-                Color(0xFF414345), // darker grey
-                Color(0xFF000000), // black
+                Color(0xFF232526),
+                Color(0xFF414345),
+                Color(0xFF000000),
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -244,7 +234,11 @@ class _YogaScreenState extends State<YogaScreen> {
           const SizedBox(height: 20),
           TextFormField(
             initialValue: _rounds.toString(),
-            decoration: commonInputDecoration('Rounds (max 25)'),
+            decoration: commonInputDecoration('Rounds'),
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              MaxValueInputFormatter(25),
+            ],
             keyboardType: TextInputType.number,
             validator: (v) {
               final val = int.tryParse(v ?? '');
@@ -259,6 +253,10 @@ class _YogaScreenState extends State<YogaScreen> {
           TextFormField(
             initialValue: _inhale.toString(),
             decoration: commonInputDecoration('Inhale seconds'),
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              MaxValueInputFormatter(120),
+            ],
             keyboardType: TextInputType.number,
             validator: (v) {
               final val = int.tryParse(v ?? '');
@@ -273,6 +271,10 @@ class _YogaScreenState extends State<YogaScreen> {
           TextFormField(
             initialValue: _hold.toString(),
             decoration: commonInputDecoration('Hold seconds'),
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              MaxValueInputFormatter(120),
+            ],
             keyboardType: TextInputType.number,
             validator: (v) {
               final val = int.tryParse(v ?? '');
@@ -287,6 +289,10 @@ class _YogaScreenState extends State<YogaScreen> {
           TextFormField(
             initialValue: _exhale.toString(),
             decoration: commonInputDecoration('Exhale seconds'),
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              MaxValueInputFormatter(120),
+            ],
             keyboardType: TextInputType.number,
             validator: (v) {
               final val = int.tryParse(v ?? '');
@@ -299,22 +305,12 @@ class _YogaScreenState extends State<YogaScreen> {
           ),
           const SizedBox(height: 20),
           TextFormField(
-            initialValue: _delayToStart.toString(),
-            decoration: commonInputDecoration('Time Delay to Start Session'),
-            keyboardType: TextInputType.number,
-            validator: (v) {
-              final val = int.tryParse(v ?? '');
-              if (val == null || val < 0 || val > 120) {
-                return 'Enter valid seconds (0-120)';
-              }
-              return null;
-            },
-            onSaved: (v) => _delayToStart = int.parse(v!),
-          ),
-          const SizedBox(height: 20),
-          TextFormField(
             initialValue: _holdAfterExhale.toString(),
-            decoration: commonInputDecoration('Hold After Exhale'),
+            decoration: commonInputDecoration('Hold seconds'),
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              MaxValueInputFormatter(120),
+            ],
             keyboardType: TextInputType.number,
             validator: (v) {
               final val = int.tryParse(v ?? '');
@@ -324,6 +320,24 @@ class _YogaScreenState extends State<YogaScreen> {
               return null;
             },
             onSaved: (v) => _holdAfterExhale = int.parse(v!),
+          ),
+          const SizedBox(height: 20),
+          TextFormField(
+            initialValue: _delayToStart.toString(),
+            decoration: commonInputDecoration('Time Delay to Start Session'),
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              MaxValueInputFormatter(120),
+            ],
+            keyboardType: TextInputType.number,
+            validator: (v) {
+              final val = int.tryParse(v ?? '');
+              if (val == null || val < 0 || val > 120) {
+                return 'Enter valid seconds (0-120)';
+              }
+              return null;
+            },
+            onSaved: (v) => _delayToStart = int.parse(v!),
           ),
           const SizedBox(height: 20),
           Row(
@@ -366,6 +380,10 @@ class _YogaScreenState extends State<YogaScreen> {
               padding: const EdgeInsets.only(bottom: 20),
               child: TextFormField(
                 initialValue: _pauseSeconds.toString(),
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  MaxValueInputFormatter(5),
+                ],
                 decoration: commonInputDecoration('Pause Seconds'),
                 keyboardType: TextInputType.number,
                 validator: (v) {
@@ -384,9 +402,9 @@ class _YogaScreenState extends State<YogaScreen> {
             decoration: BoxDecoration(
               gradient: const LinearGradient(
                 colors: [
-                  Color(0xFF232526), // dark grey
-                  Color(0xFF414345), // darker grey
-                  Color(0xFF000000), // black
+                  Color(0xFF232526),
+                  Color(0xFF414345),
+                  Color(0xFF000000),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -440,5 +458,30 @@ class _YogaScreenState extends State<YogaScreen> {
         borderSide: const BorderSide(width: 2, color: Colors.blue),
       ),
     );
+  }
+}
+
+class MaxValueInputFormatter extends TextInputFormatter {
+  final int max;
+
+  MaxValueInputFormatter(this.max);
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    if (newValue.text.isEmpty) return newValue;
+
+    try {
+      final int value = int.parse(newValue.text);
+      if (value <= max) {
+        return newValue;
+      } else {
+        return oldValue;
+      }
+    } catch (e) {
+      return oldValue;
+    }
   }
 }

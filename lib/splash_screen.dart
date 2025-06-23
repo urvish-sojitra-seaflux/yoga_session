@@ -78,10 +78,9 @@ class _SplashScreenState extends State<SplashScreen>
                             Colors.blue.shade400,
                             Colors.redAccent,
                             Colors.amberAccent,
-                            Colors.blue.shade900,
+                            Colors.green,
                           ]).createShader(
-                            Rect.fromLTWH(0, 0, bounds.width, bounds.height),
-                          ),
+                              Rect.fromLTWH(0, 0, bounds.width, bounds.height)),
                           child: const Text(
                             'Welcome \nLets Start',
                             style: TextStyle(
