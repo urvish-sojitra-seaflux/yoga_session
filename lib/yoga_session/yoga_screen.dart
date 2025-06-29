@@ -29,6 +29,7 @@ class _YogaScreenState extends State<YogaScreen> {
   int _pauseSeconds = 1;
 
   Future _speak(String text) async {
+    await _tts.awaitSpeakCompletion(true);
     await _tts.speak(text);
   }
 
@@ -42,18 +43,19 @@ class _YogaScreenState extends State<YogaScreen> {
         _phase = 'Get Ready';
         _timeLeft = _delayToStart;
       });
-      _timer?.cancel();
-      _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-        if (_timeLeft > 1) {
-          setState(() {
-            _timeLeft--;
-          });
-        } else {
-          timer.cancel();
-          _startRound();
-        }
+      _speak('Session will start in $_delayToStart seconds').whenComplete(() {
+        _timer?.cancel();
+        _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+          if (_timeLeft > 1) {
+            setState(() {
+              _timeLeft--;
+            });
+          } else {
+            timer.cancel();
+            _startRound();
+          }
+        });
       });
-      _speak('Session will start in $_delayToStart seconds');
     } else {
       _startRound();
     }
@@ -64,7 +66,7 @@ class _YogaScreenState extends State<YogaScreen> {
     await _startPhase('Inhale', _inhale);
     await _startPhase('Hold', _hold);
     await _startPhase('Exhale', _exhale);
-    if (_holdAfterExhale > 0) {
+    if (_holdAfterExhale > 0 && _currentRound < _rounds) {
       await _startPhase('Hold After Exhale', _holdAfterExhale);
     }
     await _afterExhalePause();
@@ -149,7 +151,7 @@ class _YogaScreenState extends State<YogaScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Yoga Session'),
+        title: const Text('Breathing Activity'),
         leading: const SizedBox(),
       ),
       body: LayoutBuilder(
@@ -348,6 +350,7 @@ class _YogaScreenState extends State<YogaScreen> {
               Row(
                 children: [
                   Radio<bool>(
+                    activeColor: Colors.black,
                     value: true,
                     groupValue: _pauseRequired,
                     onChanged: (val) {
