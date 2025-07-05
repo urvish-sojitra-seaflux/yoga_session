@@ -82,11 +82,12 @@ class _SplashScreenState extends State<SplashScreen>
                           ]).createShader(
                               Rect.fromLTWH(0, 0, bounds.width, bounds.height)),
                           child: const Text(
-                            'Welcome \nLets Start',
+                            'Breathing\nActivity',
                             style: TextStyle(
                               fontSize: 48,
                               fontWeight: FontWeight.bold,
                             ),
+                            textAlign: TextAlign.center,
                           ),
                         ),
                       ),

@@ -229,6 +229,7 @@ class _YogaScreenState extends State<YogaScreen> {
   Form _getDetails() {
     return Form(
       key: _formKey,
+      autovalidateMode: AutovalidateMode.onUnfocus,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.center,
